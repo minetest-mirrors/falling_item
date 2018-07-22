@@ -20,6 +20,7 @@ end
 add_fall_damage("default:sand", 2)
 add_fall_damage("default:desert_sand", 2)
 add_fall_damage("default:silver_sand", 2)
+add_fall_damage("default:gravel", 3)
 add_fall_damage("caverealms:coal_dust", 3)
 add_fall_damage("tnt:tnt_burning", 4)
 
