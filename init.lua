@@ -41,7 +41,7 @@ local function fall_hurt_check(self, pos, dtime)
 
 		if damage then
 
-			local all_objects = minetest.get_objects_inside_radius(pos, 0.7)
+			local all_objects = minetest.get_objects_inside_radius(pos, 0.8)
 
 			for _,obj in ipairs(all_objects) do
 
