@@ -10,7 +10,8 @@ Features:
 - Falling nodes removed when outside map only
 - Added 'falling_step(self, pos, dtime)' custom on_step for falling items
    'self' contains falling object data
-   'self.node.name' is the node currently falling
+   'self.node' is the node currently falling
+   'self.meta' is the metadata contained within the falling node
    'pos' holds position of falling item
    'dtime' used for timers
 
@@ -24,6 +25,6 @@ falling_step() example
 
 minetest.override_item("default:gravel", {
 	falling_step = function(self, pos, dtime)
-		print ("Gravel falling!", dtime)
+		print (self.node.name .. " falling!", dtime)
 	end
 })
