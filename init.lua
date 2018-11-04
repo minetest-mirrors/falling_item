@@ -32,7 +32,7 @@ local node_fall_hurt = minetest.setting_getbool("node_fall_hurt") ~= false
 local delay = 0.1 -- used to simulate lag
 local gravity = core.settings:get("movement_gravity") or 9.81
 
-local function fall_hurt_check(self, pos, dtime)
+local function fall_hurt_check(self, pos)
 
 	if self.hurt_toggle then
 
@@ -149,14 +149,14 @@ core.register_entity(":__builtin:falling_node", {
 
 		-- Check for player/mobs below falling node and hurt them >:D
 		if node_fall_hurt then
-			fall_hurt_check(self, below_pos, dtime)
+			fall_hurt_check(self, below_pos)
 		end
 
 		--  check if falling node has custom function set
 		local custom = core.registered_items[self.node.name]
 			and core.registered_items[self.node.name].falling_step
 
-		if custom and custom(self, pos, dtime) == false then
+		if custom and custom(self, pos, dtime + delay) == false then
 			return -- skip further checks if false
 		end
 
