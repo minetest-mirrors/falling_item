@@ -152,6 +152,14 @@ core.register_entity(":__builtin:falling_node", {
 			fall_hurt_check(self, below_pos, dtime)
 		end
 
+		--  check if falling node has custom function set
+		local custom = core.registered_items[self.node.name]
+			and core.registered_items[self.node.name].falling_step
+
+		if custom and custom(self, pos, dtime) == false then
+			return -- skip further checks if false
+		end
+
 		-- Avoid bugs caused by an unloaded node below
 		local below_node = core.get_node_or_nil(below_pos)
 
@@ -262,3 +270,11 @@ core.register_entity(":__builtin:falling_node", {
 		end
 	end
 })
+
+--[[
+core.override_item("default:gravel", {
+	falling_step = function(self, pos, dtime)
+		print ("Gravel falling!", dtime)
+	end
+})
+]]

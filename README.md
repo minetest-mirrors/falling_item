@@ -8,5 +8,22 @@ Features:
 - Any attached nodes will drop as item when replaced
 - Added horizontal slowing for when TNT blasts a falling node
 - Falling nodes removed when outside map only
+- Added 'falling_step(self, pos, dtime)' custom on_step for falling items
+   'self' contains falling object data
+   'self.node.name' is the node currently falling
+   'pos' holds position of falling item
+   'dtime' used for timers
+
+   return false to skip further checks by falling_item
+
 
 License: MIT
+
+
+falling_step() example
+
+minetest.override_item("default:gravel", {
+	falling_step = function(self, pos, dtime)
+		print ("Gravel falling!", dtime)
+	end
+})
