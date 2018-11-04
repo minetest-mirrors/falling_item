@@ -30,6 +30,7 @@ add_fall_damage("tnt:tnt_burning", 4)
 
 local node_fall_hurt = minetest.setting_getbool("node_fall_hurt") ~= false
 local delay = 0.1 -- used to simulate lag
+local gravity = core.settings:get("movement_gravity") or 9.81
 
 local function fall_hurt_check(self, pos, dtime)
 
@@ -66,6 +67,7 @@ end
 
 
 core.register_entity(":__builtin:falling_node", {
+
 	initial_properties = {
 		visual = "wielditem",
 		visual_size = {x = 0.667, y = 0.667},
@@ -82,31 +84,34 @@ core.register_entity(":__builtin:falling_node", {
 		self.meta = meta
 		self.hurt_toggle = true
 
-		self.object:set_properties({is_visible = true, textures = {node.name}})
+		self.object:set_properties({
+			is_visible = true,
+			textures = {node.name}
+		})
 	end,
 
 	get_staticdata = function(self)
 
-		return core.serialize({node = self.node, meta = self.meta})
+		return core.serialize({
+			node = self.node,
+			meta = self.meta
+		})
 	end,
 
 	on_activate = function(self, staticdata)
 
 		self.object:set_armor_groups({immortal = 1})
-		self.object:set_acceleration({x = 0, y = -10, z = 0})
+		self.object:set_acceleration({x = 0, y = -gravity, z = 0})
 
 		local ds = core.deserialize(staticdata)
 
 		if ds and ds.node then
-
 			self:set_node(ds.node, ds.meta)
 
 		elseif ds then
-
 			self:set_node(ds)
 
 		elseif staticdata ~= "" then
-
 			self:set_node({name = staticdata})
 		end
 	end,
@@ -122,12 +127,20 @@ core.register_entity(":__builtin:falling_node", {
 
 		self.timer = 0
 
-		-- Set gravity
-		local acceleration = self.object:get_acceleration()
+		-- Set gravity and horizontal slowing
+		self.object:set_acceleration({x = 0, y = -gravity, z = 0})
 
-		if not vector.equals(acceleration, {x = 0, y = -10, z = 0}) then
-			self.object:set_acceleration({x = 0, y = -10, z = 0})
+		local vel = self.object:get_velocity()
+
+		vel.x = vel.x * 0.95
+		vel.z = vel.z * 0.95
+
+		if vel.x < 0.1 and vel.z < 0.1 then
+			vel.x = 0
+			vel.z = 0
 		end
+
+		self.object:set_velocity(vel)
 
 		local pos = self.object:get_pos()
 
@@ -140,21 +153,24 @@ core.register_entity(":__builtin:falling_node", {
 		end
 
 		-- Avoid bugs caused by an unloaded node below
-		local below_node = core.get_node(below_pos)
+		local below_node = core.get_node_or_nil(below_pos)
 
-		-- Delete on contact with ignore at world edges
-		if below_node.name == "ignore" then
+		-- Delete on contact with ignore at world edges or return if unloaded
+		if not below_node then
+			return
+
+		elseif below_node.name == "ignore" then
 
 			self.object:remove()
+
 			return
 		end
 
 		local below_nodef = core.registered_nodes[below_node.name]
 
 		-- Is it a level node we can add to?
-		if below_nodef
-		and below_nodef.leveled
-		and below_node.name == self.node.name then
+		if below_nodef and below_nodef.leveled and
+				below_node.name == self.node.name then
 
 			local addlevel = self.node.level
 
@@ -163,14 +179,16 @@ core.register_entity(":__builtin:falling_node", {
 			end
 
 			if core.add_node_level(below_pos, addlevel) == 0 then
+
 				self.object:remove()
+
 				return
 			end
 		end
 
 		-- Stop node if it falls on walkable surface, or floats on water
 		if (below_nodef and below_nodef.walkable == true)
-		or (below_nodef
+				or (below_nodef
 				and core.get_item_group(self.node.name, "float") ~= 0
 				and below_nodef.liquidtype ~= "none") then
 
@@ -178,8 +196,6 @@ core.register_entity(":__builtin:falling_node", {
 		end
 
 		-- Has the fallen node stopped moving ?
-		local vel = self.object:get_velocity()
-
 		if vector.equals(vel, {x = 0, y = 0, z = 0}) then
 
 			local npos = self.object:get_pos()
@@ -188,12 +204,12 @@ core.register_entity(":__builtin:falling_node", {
 			local cnode = minetest.get_node(npos).name
 			local cdef = core.registered_nodes[cnode]
 
-			-- If 'air' or buildable_to or an attached_node then place node,
-			-- otherwise drop falling node as an item instead.
-			if cnode == "air"
-			or (cdef and cdef.buildable_to == true)
-			or (cdef and cdef.liquidtype ~= "none")
-			or core.get_item_group(cnode, "attached_node") ~= 0 then
+			-- If air_equivalent  or buildable_to or an attached_node then place
+			--  node, otherwise drop falling node as an item instead.
+			if (cdef and cdef.air_equivalent == true)
+					or (cdef and cdef.buildable_to == true)
+					or (cdef and cdef.liquidtype ~= "none")
+					or core.get_item_group(cnode, "attached_node") ~= 0 then
 
 				-- Are we an attached node ? (grass, flowers, torch)
 				if core.get_item_group(cnode, "attached_node") ~= 0 then
@@ -218,7 +234,9 @@ core.register_entity(":__builtin:falling_node", {
 				core.add_node(npos, self.node)
 
 				if self.meta then
+
 					local meta = core.get_meta(npos)
+
 					meta:from_table(self.meta)
 				end
 
@@ -239,8 +257,7 @@ core.register_entity(":__builtin:falling_node", {
 					core.add_item(npos, dropped_item)
 				end
 			end
-
-			-- Remove falling entity
+			-- Remove falling entity if it cannot be placed
 			self.object:remove()
 		end
 	end
