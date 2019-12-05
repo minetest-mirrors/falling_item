@@ -28,7 +28,7 @@ add_fall_damage("tnt:tnt_burning", 4)
 -- Falling stuff
 --
 
-local node_fall_hurt = minetest.setting_getbool("node_fall_hurt") ~= false
+local node_fall_hurt = core.settings:get_bool("node_fall_hurt") ~= false
 local delay = 0.1 -- used to simulate lag
 local gravity = core.settings:get("movement_gravity") or 9.81
 
@@ -209,21 +209,21 @@ core.register_entity(":__builtin:falling_node", {
 			local npos = self.object:get_pos()
 
 			-- Get node we've landed inside
-			local cnode = minetest.get_node(npos).name
-			local cdef = core.registered_nodes[cnode]
+			local cnode = minetest.get_node(npos)
+			local cdef = core.registered_nodes[cnode.name]
 
 			-- If air_equivalent  or buildable_to or an attached_node then place
 			--  node, otherwise drop falling node as an item instead.
 			if (cdef and cdef.air_equivalent == true)
 					or (cdef and cdef.buildable_to == true)
 					or (cdef and cdef.liquidtype ~= "none")
-					or core.get_item_group(cnode, "attached_node") ~= 0 then
+					or core.get_item_group(cnode.name, "attached_node") ~= 0 then
 
 				-- Are we an attached node ? (grass, flowers, torch)
-				if core.get_item_group(cnode, "attached_node") ~= 0 then
+				if core.get_item_group(cnode.name, "attached_node") ~= 0 then
 
 					-- Add drops from attached node
-					local drops = core.get_node_drops(cnode, "")
+					local drops = core.get_node_drops(cnode.name, "")
 
 					for _, dropped_item in pairs(drops) do
 						core.add_item(npos, dropped_item)
