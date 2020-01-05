@@ -17,6 +17,10 @@ Features:
 
    return false to skip further checks by falling_item
 
+Additional:
+ - Falling nodes with a light source fall with glow active
+ - Torchlike or signlike nodes fall with different drawtypes
+ - Thanks to Wuzzy for both of the above features :)
 
 License: MIT
 

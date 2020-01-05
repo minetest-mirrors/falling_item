@@ -81,13 +81,156 @@ core.register_entity(":__builtin:falling_node", {
 	set_node = function(self, node, meta)
 
 		self.node = node
-		self.meta = meta
+		meta = meta or {}
 		self.hurt_toggle = true
 
-		self.object:set_properties({
-			is_visible = true,
-			textures = {node.name}
-		})
+		if type(meta.to_table) == "function" then
+			meta = meta:to_table()
+		end
+
+		for _, list in pairs(meta.inventory or {}) do
+
+			for i, stack in pairs(list) do
+
+				if type(stack) == "userdata" then
+					list[i] = stack:to_string()
+				end
+			end
+		end
+
+		local def = core.registered_nodes[node.name]
+
+		if not def then
+
+			-- Don't allow unknown nodes to fall
+			core.log("warning", "Unknown falling node removed at "..
+					core.pos_to_string(self.object:get_pos()))
+
+			self.object:remove()
+
+			return
+		end
+
+		self.meta = meta
+
+		if def.drawtype == "airlike" then
+
+			self.object:set_properties({
+				is_visible = false,
+			})
+
+		elseif def.drawtype == "torchlike" or def.drawtype == "signlike" then
+
+			local textures
+
+			if def.tiles and def.tiles[1] then
+
+				if def.drawtype == "torchlike" then
+					textures = { "("..def.tiles[1]..")^[transformFX", def.tiles[1] }
+				else
+					textures = { def.tiles[1] }
+				end
+			end
+
+			self.object:set_properties({
+				is_visible = true,
+				visual = "upright_sprite",
+				visual_size = {x = 1, y = 1},
+				textures = textures,
+				glow = def.light_source,
+			})
+		else
+			local itemstring = node.name
+
+			if core.is_colored_paramtype(def.paramtype2) then
+				itemstring = core.itemstring_with_palette(itemstring, node.param2)
+			end
+
+			self.object:set_properties({
+				is_visible = true,
+				wield_item = itemstring,
+				glow = def.light_source,
+			})
+		end
+
+		-- Rotate entity
+		if def.drawtype == "torchlike" then
+
+			self.object:set_yaw(math.pi*0.25)
+
+		elseif (node.param2 ~= 0 and (def.wield_image == ""
+				or def.wield_image == nil))
+				or def.drawtype == "signlike" then
+
+			if (def.paramtype2 == "facedir" or def.paramtype2 == "colorfacedir") then
+
+				local fdir = node.param2 % 32
+				local face = fdir % 4
+				local axis = fdir - face
+				local pitch, yaw, roll
+
+				if axis == 4 then
+					pitch = (4 - face) * (math.pi/2) - math.pi/2
+					yaw = math.pi/2
+					roll = math.pi/2
+
+				elseif axis == 8 then
+					pitch = (4 - face) * (math.pi/2) - math.pi*1.5
+					yaw = math.pi*1.5
+					roll = math.pi/2
+
+				elseif axis == 12 then
+					pitch = (4 - face) * (math.pi/2)
+					yaw = 0
+					roll = math.pi/2
+
+				elseif axis == 16 then
+					pitch = (4 - face) * (math.pi/2) + math.pi
+					yaw = math.pi
+					roll = math.pi/2
+
+				elseif axis == 20 then
+					pitch = math.pi
+					yaw = face * (math.pi/2) + math.pi
+					roll = 0
+				else
+					pitch = 0
+					yaw = (4 - face) * (math.pi/2)
+					roll = 0
+				end
+
+				self.object:set_rotation({x = pitch, y = yaw, z = roll})
+
+			elseif (def.paramtype2 == "wallmounted"
+					or def.paramtype2 == "colorwallmounted") then
+
+				local rot = node.param2 % 8
+				local pitch, yaw, roll = 0, 0, 0
+
+				if rot == 1 then
+					pitch, yaw = -math.pi, -math.pi
+				elseif rot == 2 then
+					pitch, yaw = math.pi/2, math.pi/2
+				elseif rot == 3 then
+					pitch, yaw = math.pi/2, math.pi*1.5
+				elseif rot == 4 then
+					pitch, yaw = math.pi/2, math.pi
+				elseif rot == 5 then
+					pitch, yaw = math.pi/2, 0
+				end
+
+				if def.drawtype == "signlike" then
+
+					pitch = pitch - math.pi/2
+
+					if rot >= 0 and rot <= 1 then
+						roll = roll - math.pi/2
+					end
+				end
+
+				self.object:set_rotation({x = pitch, y = yaw, z = roll})
+			end
+		end
 	end,
 
 	get_staticdata = function(self)
