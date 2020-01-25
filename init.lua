@@ -164,7 +164,7 @@ core.register_entity(":__builtin:falling_node", {
 
 			if (def.paramtype2 == "facedir" or def.paramtype2 == "colorfacedir") then
 
-				local fdir = node.param2 % 32
+				local fdir = (node.param2 or 1) % 32
 				local face = fdir % 4
 				local axis = fdir - face
 				local pitch, yaw, roll
@@ -204,7 +204,7 @@ core.register_entity(":__builtin:falling_node", {
 			elseif (def.paramtype2 == "wallmounted"
 					or def.paramtype2 == "colorwallmounted") then
 
-				local rot = node.param2 % 8
+				local rot = (node.param2 or 1) % 8
 				local pitch, yaw, roll = 0, 0, 0
 
 				if rot == 1 then
