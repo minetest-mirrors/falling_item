@@ -126,7 +126,8 @@ core.register_entity(":__builtin:falling_node", {
 			if def.tiles and def.tiles[1] then
 
 				if def.drawtype == "torchlike" then
-					textures = { "("..def.tiles[1]..")^[transformFX", def.tiles[1] }
+					textures = {
+						"(" .. def.tiles[1] .. ")^[transformFX", def.tiles[1]}
 				else
 					textures = { def.tiles[1] }
 				end
@@ -143,7 +144,8 @@ core.register_entity(":__builtin:falling_node", {
 			local itemstring = node.name
 
 			if core.is_colored_paramtype(def.paramtype2) then
-				itemstring = core.itemstring_with_palette(itemstring, node.param2)
+				itemstring = core.itemstring_with_palette(
+						itemstring, node.param2)
 			end
 
 			self.object:set_properties({
@@ -156,13 +158,14 @@ core.register_entity(":__builtin:falling_node", {
 		-- Rotate entity
 		if def.drawtype == "torchlike" then
 
-			self.object:set_yaw(math.pi*0.25)
+			self.object:set_yaw(math.pi * 0.25)
 
 		elseif (node.param2 ~= 0 and (def.wield_image == ""
 				or def.wield_image == nil))
 				or def.drawtype == "signlike" then
 
-			if (def.paramtype2 == "facedir" or def.paramtype2 == "colorfacedir") then
+			if (def.paramtype2 == "facedir"
+			or def.paramtype2 == "colorfacedir") then
 
 				local fdir = (node.param2 or 1) % 32
 				local face = fdir % 4
@@ -170,32 +173,32 @@ core.register_entity(":__builtin:falling_node", {
 				local pitch, yaw, roll
 
 				if axis == 4 then
-					pitch = (4 - face) * (math.pi/2) - math.pi/2
-					yaw = math.pi/2
-					roll = math.pi/2
+					pitch = (4 - face) * (math.pi / 2) - math.pi / 2
+					yaw = math.pi / 2
+					roll = math.pi / 2
 
 				elseif axis == 8 then
-					pitch = (4 - face) * (math.pi/2) - math.pi*1.5
-					yaw = math.pi*1.5
-					roll = math.pi/2
+					pitch = (4 - face) * (math.pi / 2) - math.pi * 1.5
+					yaw = math.pi * 1.5
+					roll = math.pi / 2
 
 				elseif axis == 12 then
-					pitch = (4 - face) * (math.pi/2)
+					pitch = (4 - face) * (math.pi / 2)
 					yaw = 0
-					roll = math.pi/2
+					roll = math.pi / 2
 
 				elseif axis == 16 then
-					pitch = (4 - face) * (math.pi/2) + math.pi
+					pitch = (4 - face) * (math.pi / 2) + math.pi
 					yaw = math.pi
-					roll = math.pi/2
+					roll = math.pi / 2
 
 				elseif axis == 20 then
 					pitch = math.pi
-					yaw = face * (math.pi/2) + math.pi
+					yaw = face * (math.pi / 2) + math.pi
 					roll = 0
 				else
 					pitch = 0
-					yaw = (4 - face) * (math.pi/2)
+					yaw = (4 - face) * (math.pi / 2)
 					roll = 0
 				end
 
@@ -210,21 +213,21 @@ core.register_entity(":__builtin:falling_node", {
 				if rot == 1 then
 					pitch, yaw = -math.pi, -math.pi
 				elseif rot == 2 then
-					pitch, yaw = math.pi/2, math.pi/2
+					pitch, yaw = math.pi / 2, math.pi / 2
 				elseif rot == 3 then
-					pitch, yaw = math.pi/2, math.pi*1.5
+					pitch, yaw = math.pi / 2, math.pi * 1.5
 				elseif rot == 4 then
-					pitch, yaw = math.pi/2, math.pi
+					pitch, yaw = math.pi / 2, math.pi
 				elseif rot == 5 then
-					pitch, yaw = math.pi/2, 0
+					pitch, yaw = math.pi / 2, 0
 				end
 
 				if def.drawtype == "signlike" then
 
-					pitch = pitch - math.pi/2
+					pitch = pitch - math.pi / 2
 
 					if rot >= 0 and rot <= 1 then
-						roll = roll - math.pi/2
+						roll = roll - math.pi / 2
 					end
 				end
 
@@ -349,7 +352,7 @@ core.register_entity(":__builtin:falling_node", {
 		-- Has the fallen node stopped moving ?
 		if vector.equals(vel, {x = 0, y = 0, z = 0}) then
 
-			local npos = self.object:get_pos()
+			local npos = self.object:get_pos() if not npos then return end
 
 			-- Get node we've landed inside
 			local cnode = minetest.get_node(npos)
