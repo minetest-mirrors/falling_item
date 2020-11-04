@@ -47,14 +47,16 @@ local function fall_hurt_check(self, pos)
 			for _,obj in ipairs(all_objects) do
 
 				local name = obj:get_luaentity() and
-						obj:get_luaentity().name or ""
+						obj:get_luaentity().name
 
-				if name ~= "__builtin:item"
-						and name ~= "__builtin:falling_node" then
+				if (name
+				and name ~= "__builtin:item"
+				and name ~= "__builtin:falling_node")
+				or obj:is_player() then
 
 					obj:punch(self.object, 4.0, {
 						damage_groups = {fleshy = damage}
-					})
+					}, nil)
 
 					self.hurt_toggle = false
 				end
