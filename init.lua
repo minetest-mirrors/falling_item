@@ -264,6 +264,21 @@ core.register_entity(":__builtin:falling_node", {
 		end
 	end,
 
+	-- incase falling entity is stuck, punching drops as item to recover
+	on_punch = function(self, puncher, tflp, tool_caps, dir, damage)
+
+		if puncher and puncher:is_player() then
+
+			local drops = core.get_node_drops(self.node, "")
+
+			for _, dropped_item in pairs(drops) do
+				core.add_item(self.object:get_pos(), dropped_item)
+			end
+
+			self.object:remove()
+		end
+	end,
+
 	on_step = function(self, dtime)
 
 		-- used to simulate a little lag
