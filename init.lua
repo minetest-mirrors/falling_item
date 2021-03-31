@@ -77,7 +77,7 @@ core.register_entity(":__builtin:falling_node", {
 		physical = true,
 		is_visible = false,
 		collide_with_objects = false,
-		collisionbox = {-0.5, -0.5, -0.5, 0.5, 0.5, 0.5},
+		collisionbox = {-0.5, -0.5, -0.5, 0.5, 0.5, 0.5}
 	},
 
 	set_node = function(self, node, meta)
@@ -380,7 +380,11 @@ core.register_entity(":__builtin:falling_node", {
 			if (cdef and cdef.air_equivalent == true)
 					or (cdef and cdef.buildable_to == true)
 					or (cdef and cdef.liquidtype ~= "none")
-					or core.get_item_group(cnode.name, "attached_node") ~= 0 then
+--					or core.get_item_group(cnode.name, "attached_node") ~= 0 then
+
+-- only drop attacked nodes if area not protected (torch, rails etc.)
+or (core.get_item_group(cnode.name, "attached_node") ~= 0
+and not minetest.is_protected(npos, "")) then
 
 				-- Are we an attached node ? (grass, flowers, torch)
 				if core.get_item_group(cnode.name, "attached_node") ~= 0 then
