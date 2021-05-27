@@ -419,7 +419,7 @@ and not minetest.is_protected(npos, "")) then
 				local def = core.registered_nodes[self.node.name]
 
 				if def.sounds and def.sounds.place and def.sounds.place.name then
-					core.sound_play(def.sounds.place, {pos = npos})
+					core.sound_play(def.sounds.place, {pos = npos}, true)
 				end
 
 				-- Just incase we landed on other falling nodes
