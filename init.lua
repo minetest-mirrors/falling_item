@@ -113,6 +113,7 @@ core.register_entity(":__builtin:falling_node", {
 	set_node = function(self, node, meta)
 
 		self.node = node
+self.node.param2 = self.node.param2 or 0
 		meta = meta or {}
 		self.hurt_toggle = true
 
