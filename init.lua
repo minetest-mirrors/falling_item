@@ -113,7 +113,6 @@ core.register_entity(":__builtin:falling_node", {
 	set_node = function(self, node, meta)
 
 		self.node = node
-self.node.param2 = self.node.param2 or 0
 		meta = meta or {}
 		self.hurt_toggle = true
 
@@ -145,6 +144,9 @@ self.node.param2 = self.node.param2 or 0
 		end
 
 		self.meta = meta
+
+		-- make sure param2 isnt nil
+		local np2 = node.param2 or 0
 
 		-- Cache whether we're supposed to float on water
 		self.floats = core.get_item_group(node.name, "float") ~= 0
@@ -191,7 +193,7 @@ self.node.param2 = self.node.param2 or 0
 			local itemstring = node.name
 
 			if core.is_colored_paramtype(def.paramtype2) then
-				itemstring = core.itemstring_with_palette(itemstring, node.param2)
+				itemstring = core.itemstring_with_palette(itemstring, np2)
 			end
 
 			local s = (def.visual_scale or 1) * SCALE * 0.5
@@ -209,7 +211,7 @@ self.node.param2 = self.node.param2 or 0
 			local itemstring = node.name
 
 			if core.is_colored_paramtype(def.paramtype2) then
-				itemstring = core.itemstring_with_palette(itemstring, node.param2)
+				itemstring = core.itemstring_with_palette(itemstring, np2)
 			end
 
 			-- FIXME: solution needed for paramtype2 == "leveled"
@@ -258,9 +260,9 @@ self.node.param2 = self.node.param2 or 0
 		-- Rotate entity
 		if def.drawtype == "torchlike" then
 
-			self.object:set_yaw(math.pi*0.25)
+			self.object:set_yaw(math.pi * 0.25)
 
-		elseif ((node.param2 ~= 0 or def.drawtype == "nodebox" or def.drawtype == "mesh")
+		elseif ((np2 ~= 0 or def.drawtype == "nodebox" or def.drawtype == "mesh")
 				and (def.wield_image == "" or def.wield_image == nil))
 				or def.drawtype == "signlike"
 				or def.drawtype == "mesh"
@@ -269,7 +271,7 @@ self.node.param2 = self.node.param2 or 0
 
 			if (def.paramtype2 == "facedir" or def.paramtype2 == "colorfacedir") then
 
-				local fdir = node.param2 % 32
+				local fdir = np2 % 32
 
 				-- Get rotation from a precalculated lookup table
 				local euler = facedir_to_euler[fdir + 1]
@@ -281,7 +283,7 @@ self.node.param2 = self.node.param2 or 0
 			elseif (def.paramtype2 == "wallmounted"
 			or def.paramtype2 == "colorwallmounted" or def.drawtype == "signlike") then
 
-				local rot = node.param2 % 8
+				local rot = np2 % 8
 
 				if (def.drawtype == "signlike"
 				and def.paramtype2 ~= "wallmounted"
@@ -344,14 +346,14 @@ self.node.param2 = self.node.param2 or 0
 
 			elseif (def.drawtype == "mesh" and def.paramtype2 == "degrotate") then
 
-				local p2 = (node.param2 - (def.place_param2 or 0)) % 240
+				local p2 = (np2 - (def.place_param2 or 0)) % 240
 				local yaw = (p2 / 240) * (math.pi * 2)
 
 				self.object:set_yaw(yaw)
 
 			elseif (def.drawtype == "mesh" and def.paramtype2 == "colordegrotate") then
 
-				local p2 = (node.param2 % 32 - (def.place_param2 or 0) % 32) % 24
+				local p2 = (np2 % 32 - (def.place_param2 or 0) % 32) % 24
 				local yaw = (p2 / 24) * (math.pi * 2)
 
 				self.object:set_yaw(yaw)
