@@ -567,3 +567,6 @@ core.override_item("default:gravel", {
 	end
 })
 ]]
+
+
+print("[MOD] Falling Item loaded")
