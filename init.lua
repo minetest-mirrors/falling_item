@@ -1,7 +1,4 @@
-
 -- Minetest: builtin/item.lua (override falling entity with new features)
-
--- override falling nodes to add damage
 
 local function add_fall_damage(node, damage)
 
@@ -17,6 +14,7 @@ local function add_fall_damage(node, damage)
 	end
 end
 
+-- override falling nodes to add damage
 add_fall_damage("default:sand", 2)
 add_fall_damage("default:desert_sand", 2)
 add_fall_damage("default:silver_sand", 2)
@@ -31,10 +29,8 @@ add_fall_damage("tnt:tnt_burning", 4)
 local node_fall_hurt = core.settings:get_bool("node_fall_hurt") ~= false
 local delay = 0.1 -- used to simulate lag
 local gravity = core.settings:get("movement_gravity") or 9.81
-
 local builtin_shared = ...
 local SCALE = 0.667
-
 local facedir_to_euler = {
 	{y = 0, x = 0, z = 0},
 	{y = -math.pi/2, x = 0, z = 0},
@@ -68,7 +64,7 @@ local function fall_hurt_check(self, pos)
 
 		-- Get damage level from falling_node_damage group
 		local damage = core.registered_nodes[self.node.name] and
-			core.registered_nodes[self.node.name].groups.falling_node_damage
+				core.registered_nodes[self.node.name].groups.falling_node_damage
 
 		if damage then
 
@@ -76,17 +72,12 @@ local function fall_hurt_check(self, pos)
 
 			for _,obj in ipairs(all_objects) do
 
-				local name = obj:get_luaentity() and
-						obj:get_luaentity().name
+				local name = obj:get_luaentity() and obj:get_luaentity().name
 
-				if (name
-				and name ~= "__builtin:item"
-				and name ~= "__builtin:falling_node")
+				if (name ~= "__builtin:item" and name ~= "__builtin:falling_node")
 				or obj:is_player() then
 
-					obj:punch(self.object, 4.0, {
-						damage_groups = {fleshy = damage}
-					}, nil)
+					obj:punch(self.object, 4.0, {damage_groups = {fleshy = damage}}, nil)
 
 					self.hurt_toggle = false
 				end
@@ -98,6 +89,7 @@ local function fall_hurt_check(self, pos)
 end
 
 
+-- override falling node entity with new version
 core.register_entity(":__builtin:falling_node", {
 
 	initial_properties = {
@@ -135,8 +127,8 @@ core.register_entity(":__builtin:falling_node", {
 		if not def then
 
 			-- Don't allow unknown nodes to fall
-			core.log("warning", "Unknown falling node removed at "..
-					core.pos_to_string(self.object:get_pos()))
+			core.log("warning", "Unknown falling node removed at "
+				.. core.pos_to_string(self.object:get_pos()))
 
 			self.object:remove()
 
@@ -165,9 +157,9 @@ core.register_entity(":__builtin:falling_node", {
 				end
 
 				if def.drawtype == "torchlike" then
-					textures = { "("..tile..")^[transformFX", tile }
+					textures = {"(" .. tile .. ")^[transformFX", tile}
 				else
-					textures = { tile, "("..tile..")^[transformFX" }
+					textures = {tile, "(" .. tile .. ")^[transformFX"}
 				end
 			end
 
@@ -188,24 +180,6 @@ core.register_entity(":__builtin:falling_node", {
 				glow = def.light_source
 			})
 
-		elseif def.drawtype == "mesh" then
-
-			local itemstring = node.name
-
-			if core.is_colored_paramtype(def.paramtype2) then
-				itemstring = core.itemstring_with_palette(itemstring, np2)
-			end
-
-			local s = (def.visual_scale or 1) * SCALE * 0.5
-			local vsize = vector.new(s, s, s)
-
-			self.object:set_properties({
-				is_visible = true,
-				wield_item = itemstring,
-				visual_size = vsize,
-				glow = def.light_source
-			})
-
 		elseif def.drawtype ~= "airlike" then
 
 			local itemstring = node.name
@@ -217,26 +191,31 @@ core.register_entity(":__builtin:falling_node", {
 			-- FIXME: solution needed for paramtype2 == "leveled"
 			local vsize
 
-			local s = (def.visual_scale or 1) * SCALE
+			local s = {}
+			s.x = (def.visual_scale or 1) * SCALE
+			s.y = s.x
+			s.z = s.x
 
---			if def.drawtype == "mesh" then
---				s = s * 0.5
---			end
+			-- Compensate for wield_scale
+			if def.wield_scale then
+				s.x = s.x / def.wield_scale.x
+				s.y = s.y / def.wield_scale.y
+				s.z = s.z / def.wield_scale.z
+			end
 
 			self.object:set_properties({
 				is_visible = true,
 				wield_item = itemstring,
-				visual_size = vector.new(s, s, s),
+				visual_size = s,
 				glow = def.light_source
 			})
 		end
 
 		-- Set collision box (certain nodeboxes only for now)
-		local nb_types = {fixed=true, leveled=true, connected=true}
+		local nb_types = {fixed = true, leveled = true, connected = true}
 
-		if def.drawtype == "nodebox" and def.node_box and
-
-			nb_types[def.node_box.type] and def.node_box.fixed then
+		if def.drawtype == "nodebox" and def.node_box
+		and nb_types[def.node_box.type] and def.node_box.fixed then
 
 			local box = table.copy(def.node_box.fixed)
 
@@ -262,15 +241,15 @@ core.register_entity(":__builtin:falling_node", {
 			self.object:set_yaw(math.pi * 0.25)
 
 		elseif ((np2 ~= 0 or def.drawtype == "nodebox" or def.drawtype == "mesh")
-				and (def.wield_image == "" or def.wield_image == nil))
-				or def.drawtype == "signlike"
-				or def.drawtype == "mesh"
-				or def.drawtype == "normal"
-				or def.drawtype == "nodebox" then
+		and (def.wield_image == "" or def.wield_image == nil))
+		or def.drawtype == "signlike"
+		or def.drawtype == "mesh"
+		or def.drawtype == "normal"
+		or def.drawtype == "nodebox" then
 
-			if (def.paramtype2 == "facedir" or def.paramtype2 == "colorfacedir") then
+			if def.paramtype2 == "facedir" or def.paramtype2 == "colorfacedir" then
 
-				local fdir = np2 % 32
+				local fdir = np2 % 32 % 24
 
 				-- Get rotation from a precalculated lookup table
 				local euler = facedir_to_euler[fdir + 1]
@@ -279,15 +258,29 @@ core.register_entity(":__builtin:falling_node", {
 					self.object:set_rotation(euler)
 				end
 
-			elseif (def.paramtype2 == "wallmounted"
-			or def.paramtype2 == "colorwallmounted" or def.drawtype == "signlike") then
+			elseif def.paramtype2 == "4dir"
+			or def.paramtype2 == "color4dir" then
 
-				local rot = np2 % 8
+				local fdir = node.param2 % 4
 
-				if (def.drawtype == "signlike"
+				-- Get rotation from a precalculated lookup table
+				local euler = facedir_to_euler[fdir + 1]
+
+				if euler then
+					self.object:set_rotation(euler)
+				end
+
+			elseif def.drawtype ~= "plantlike"
+			and def.drawtype ~= "plantlike_rooted"
+			and (def.paramtype2 == "wallmounted"
+			or def.paramtype2 == "colorwallmounted"
+			or def.drawtype == "signlike") then
+
+				local rot = node.param2 % 8
+
+				if def.drawtype == "signlike"
 				and def.paramtype2 ~= "wallmounted"
-				and def.paramtype2 ~= "colorwallmounted") then
-
+				and def.paramtype2 ~= "colorwallmounted" then
 					-- Change rotation to "floor" by default for non-wallmounted paramtype2
 					rot = 1
 				end
@@ -341,7 +334,7 @@ core.register_entity(":__builtin:falling_node", {
 					end
 				end
 
-				self.object:set_rotation({x=pitch, y=yaw, z=roll})
+				self.object:set_rotation({x = pitch, y = yaw, z = roll})
 
 			elseif (def.drawtype == "mesh" and def.paramtype2 == "degrotate") then
 
@@ -439,7 +432,7 @@ core.register_entity(":__builtin:falling_node", {
 
 		--  check if falling node has custom function set
 		local custom = core.registered_items[self.node.name]
-			and core.registered_items[self.node.name].falling_step
+				and core.registered_items[self.node.name].falling_step
 
 		if custom and custom(self, pos, dtime + delay) == false then
 			return -- skip further checks if false
@@ -462,8 +455,7 @@ core.register_entity(":__builtin:falling_node", {
 		local below_nodef = core.registered_nodes[below_node.name]
 
 		-- Is it a level node we can add to?
-		if below_nodef and below_nodef.leveled and
-				below_node.name == self.node.name then
+		if below_nodef and below_nodef.leveled and below_node.name == self.node.name then
 
 			local addlevel = self.node.level
 
@@ -481,9 +473,9 @@ core.register_entity(":__builtin:falling_node", {
 
 		-- Stop node if it falls on walkable surface, or floats on water
 		if (below_nodef and below_nodef.walkable == true)
-				or (below_nodef
-				and core.get_item_group(self.node.name, "float") ~= 0
-				and below_nodef.liquidtype ~= "none") then
+		or (below_nodef
+		and core.get_item_group(self.node.name, "float") ~= 0
+		and below_nodef.liquidtype ~= "none") then
 
 			self.object:set_velocity({x = 0, y = 0, z = 0})
 		end
@@ -491,22 +483,22 @@ core.register_entity(":__builtin:falling_node", {
 		-- Has the fallen node stopped moving ?
 		if vector.equals(vel, {x = 0, y = 0, z = 0}) then
 
-			local npos = self.object:get_pos() if not npos then return end
+			local npos = self.object:get_pos()
+
+			if not npos then return end
 
 			-- Get node we've landed inside
 			local cnode = minetest.get_node(npos)
 			local cdef = core.registered_nodes[cnode.name]
 
-			-- If air_equivalent  or buildable_to or an attached_node then place
+			-- If air_equivalent or buildable_to or an attached_node then place
 			--  node, otherwise drop falling node as an item instead.
 			if (cdef and cdef.air_equivalent == true)
-					or (cdef and cdef.buildable_to == true)
-					or (cdef and cdef.liquidtype ~= "none")
---					or core.get_item_group(cnode.name, "attached_node") ~= 0 then
-
--- only drop attached nodes if area not protected (torch, rails etc.)
-or (core.get_item_group(cnode.name, "attached_node") ~= 0
-and not minetest.is_protected(npos, "")) then
+			or (cdef and cdef.buildable_to == true)
+			or (cdef and cdef.liquidtype ~= "none")
+			-- only drop attached nodes if area not protected (torch, rails etc.)
+			or (core.get_item_group(cnode.name, "attached_node") ~= 0
+			and not minetest.is_protected(npos, "")) then
 
 				-- Are we an attached node ? (grass, flowers, torch)
 				if core.get_item_group(cnode.name, "attached_node") ~= 0 then
@@ -554,11 +546,13 @@ and not minetest.is_protected(npos, "")) then
 					core.add_item(npos, dropped_item)
 				end
 			end
+
 			-- Remove falling entity if it cannot be placed
 			self.object:remove()
 		end
 	end
 })
+
 
 --[[
 core.override_item("default:gravel", {
