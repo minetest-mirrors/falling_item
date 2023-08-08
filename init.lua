@@ -15,12 +15,15 @@ local function add_fall_damage(node, damage)
 end
 
 -- override falling nodes to add damage
-add_fall_damage("default:sand", 2)
-add_fall_damage("default:desert_sand", 2)
-add_fall_damage("default:silver_sand", 2)
-add_fall_damage("default:gravel", 3)
-add_fall_damage("caverealms:coal_dust", 3)
-add_fall_damage("tnt:tnt_burning", 4)
+minetest.after(1.0, function()
+
+	add_fall_damage("default:sand", 2)
+	add_fall_damage("default:desert_sand", 2)
+	add_fall_damage("default:silver_sand", 2)
+	add_fall_damage("default:gravel", 3)
+	add_fall_damage("caverealms:coal_dust", 3)
+	add_fall_damage("tnt:tnt_burning", 4)
+end)
 
 --
 -- Falling stuff
