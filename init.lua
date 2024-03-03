@@ -415,13 +415,22 @@ core.register_entity(":__builtin:falling_node", {
 		local n2 = core.get_node(np)
 		local nd = core.registered_nodes[n2.name]
 
-		-- If it's not air or liquid, remove node and replace it with
-		-- it's drops
+		-- If it's not air or liquid, remove node and replace it with it's drops
 		if n2.name ~= "air" and (not nd or nd.liquidtype ~= "source") then
 
 			if nd and nd.buildable_to == false then
 
-				nd.on_dig(np, n2, nil)
+				local fake_digger = {
+					get_player_name = function()
+						return "!falling_node_on_dig_check"
+					end,
+					is_player = function() return false end,
+					get_wielded_item = function()
+						return ItemStack("air")
+					end
+				}
+
+				nd.on_dig(np, n2, fake_digger) -- pos, node, digger
 
 				-- If it's still there, it might be protected
 				if core.get_node(np).name == n2.name then
