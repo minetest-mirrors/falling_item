@@ -427,6 +427,9 @@ core.register_entity(":__builtin:falling_node", {
 					is_player = function() return false end,
 					get_wielded_item = function()
 						return ItemStack("air")
+					end,
+					set_wielded_item = function()
+						return ItemStack("air")
 					end
 				}
 
