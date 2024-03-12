@@ -429,7 +429,7 @@ core.register_entity(":__builtin:falling_node", {
 						return ItemStack("air")
 					end,
 					set_wielded_item = function()
-						return ItemStack("air")
+						return true
 					end
 				}
 
