@@ -96,7 +96,7 @@ end
 minetest.register_entity(":__builtin:falling_node", {
 
 	initial_properties = {
-		visual = "wielditem",
+		visual = "item", --"wielditem",
 		visual_size = {x = SCALE, y = SCALE, z = SCALE},
 		textures = {},
 		physical = true,
