@@ -31,7 +31,7 @@ end)
 
 local node_fall_hurt = minetest.settings:get_bool("node_fall_hurt") ~= false
 local delay = 0.1 -- used to simulate lag
-local gravity = minetest.settings:get("movement_gravity") or 9.81
+local gravity = tonumber(minetest.settings:get("movement_gravity")) or 9.81
 local builtin_shared = ...
 local SCALE = 0.667
 local facedir_to_euler = {
@@ -241,7 +241,12 @@ minetest.register_entity(":__builtin:falling_node", {
 		-- Rotate entity
 		if def.drawtype == "torchlike" then
 
-			self.object:set_yaw(math.pi * 0.25)
+			if (def.paramtype2 == "wallmounted" or def.paramtype2 == "colorwallmounted")
+			and node.param2 % 8 == 7 then
+				self.object:set_yaw(-math.pi * 0.25)
+			else
+				self.object:set_yaw(math.pi * 0.25)
+			end
 
 		elseif ((np2 ~= 0 or def.drawtype == "nodebox" or def.drawtype == "mesh")
 		and (def.wield_image == "" or def.wield_image == nil))
@@ -261,8 +266,7 @@ minetest.register_entity(":__builtin:falling_node", {
 					self.object:set_rotation(euler)
 				end
 
-			elseif def.paramtype2 == "4dir"
-			or def.paramtype2 == "color4dir" then
+			elseif def.paramtype2 == "4dir" or def.paramtype2 == "color4dir" then
 
 				local fdir = node.param2 % 4
 
@@ -302,6 +306,10 @@ minetest.register_entity(":__builtin:falling_node", {
 						pitch, yaw = 0, -math.pi/2
 					elseif rot == 4 then
 						pitch, yaw = 0, math.pi
+					elseif rot == 6 then
+						pitch, yaw = math.pi/2, 0
+					elseif rot == 7 then
+						pitch, yaw = -math.pi/2, math.pi
 					end
 				else
 					if rot == 1 then
@@ -314,6 +322,10 @@ minetest.register_entity(":__builtin:falling_node", {
 						pitch, yaw = math.pi/2, math.pi
 					elseif rot == 5 then
 						pitch, yaw = math.pi/2, 0
+					elseif rot == 6 then
+						pitch, yaw = math.pi, -math.pi/2
+					elseif rot == 7 then
+						pitch, yaw = 0, -math.pi/2
 					end
 				end
 
@@ -325,13 +337,23 @@ minetest.register_entity(":__builtin:falling_node", {
 						yaw = yaw + math.pi/2
 					elseif rot == 1 then
 						yaw = yaw - math.pi/2
+					elseif rot == 6 then
+						yaw = yaw - math.pi/2
+						pitch = pitch + math.pi
+					elseif rot == 7 then
+						yaw = yaw + math.pi/2
+						pitch = pitch + math.pi
 					end
 
 				elseif def.drawtype == "mesh"
 				or def.drawtype == "normal" or def.drawtype == "nodebox" then
 
-					if rot >= 0 and rot <= 1 then
+					if rot == 0 and rot == 1 then
 						roll = roll + math.pi
+					elseif rot == 6 or rot == 7 then
+						if def.drawtype ~= "normal" then
+							roll = roll - math.pi/2
+						end
 					else
 						yaw = yaw + math.pi
 					end
@@ -567,3 +589,4 @@ minetest.override_item("default:gravel", {
 
 
 print("[MOD] Falling Item loaded")
+
