@@ -420,20 +420,7 @@ core.register_entity(":__builtin:falling_node", {
 
 			if nd and nd.buildable_to == false then
 
-				local fake_digger = {
-					get_player_name = function()
-						return "!falling_node_on_dig_check"
-					end,
-					is_player = function() return false end,
-					get_wielded_item = function()
-						return ItemStack("air")
-					end,
-					set_wielded_item = function()
-						return false
-					end
-				}
-
-				nd.on_dig(np, n2, fake_digger) -- pos, node, digger
+				nd.on_dig(np, n2, nil) -- pos, node, digger
 
 				-- If it's still there, it might be protected
 				if core.get_node(np).name == n2.name then
