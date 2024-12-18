@@ -14,6 +14,10 @@ local function add_fall_damage(node, damage)
 	end
 end
 
+-- localize math func
+
+local math_pi = math.pi
+
 -- override falling nodes to add damage
 minetest.after(1.0, function()
 
@@ -36,29 +40,29 @@ local builtin_shared = ...
 local SCALE = 0.667
 local facedir_to_euler = {
 	{y = 0, x = 0, z = 0},
-	{y = -math.pi/2, x = 0, z = 0},
-	{y = math.pi, x = 0, z = 0},
-	{y = math.pi/2, x = 0, z = 0},
-	{y = math.pi/2, x = -math.pi/2, z = math.pi/2},
-	{y = math.pi/2, x = math.pi, z = math.pi/2},
-	{y = math.pi/2, x = math.pi/2, z = math.pi/2},
-	{y = math.pi/2, x = 0, z = math.pi/2},
-	{y = -math.pi/2, x = math.pi/2, z = math.pi/2},
-	{y = -math.pi/2, x = 0, z = math.pi/2},
-	{y = -math.pi/2, x = -math.pi/2, z = math.pi/2},
-	{y = -math.pi/2, x = math.pi, z = math.pi/2},
-	{y = 0, x = 0, z = math.pi/2},
-	{y = 0, x = -math.pi/2, z = math.pi/2},
-	{y = 0, x = math.pi, z = math.pi/2},
-	{y = 0, x = math.pi/2, z = math.pi/2},
-	{y = math.pi, x = math.pi, z = math.pi/2},
-	{y = math.pi, x = math.pi/2, z = math.pi/2},
-	{y = math.pi, x = 0, z = math.pi/2},
-	{y = math.pi, x = -math.pi/2, z = math.pi/2},
-	{y = math.pi, x = math.pi, z = 0},
-	{y = -math.pi/2, x = math.pi, z = 0},
-	{y = 0, x = math.pi, z = 0},
-	{y = math.pi/2, x = math.pi, z = 0}
+	{y = -math_pi/2, x = 0, z = 0},
+	{y = math_pi, x = 0, z = 0},
+	{y = math_pi/2, x = 0, z = 0},
+	{y = math_pi/2, x = -math_pi/2, z = math_pi/2},
+	{y = math_pi/2, x = math_pi, z = math_pi/2},
+	{y = math_pi/2, x = math_pi/2, z = math_pi/2},
+	{y = math_pi/2, x = 0, z = math_pi/2},
+	{y = -math_pi/2, x = math_pi/2, z = math_pi/2},
+	{y = -math_pi/2, x = 0, z = math_pi/2},
+	{y = -math_pi/2, x = -math_pi/2, z = math_pi/2},
+	{y = -math_pi/2, x = math_pi, z = math_pi/2},
+	{y = 0, x = 0, z = math_pi/2},
+	{y = 0, x = -math_pi/2, z = math_pi/2},
+	{y = 0, x = math_pi, z = math_pi/2},
+	{y = 0, x = math_pi/2, z = math_pi/2},
+	{y = math_pi, x = math_pi, z = math_pi/2},
+	{y = math_pi, x = math_pi/2, z = math_pi/2},
+	{y = math_pi, x = 0, z = math_pi/2},
+	{y = math_pi, x = -math_pi/2, z = math_pi/2},
+	{y = math_pi, x = math_pi, z = 0},
+	{y = -math_pi/2, x = math_pi, z = 0},
+	{y = 0, x = math_pi, z = 0},
+	{y = math_pi/2, x = math_pi, z = 0}
 }
 
 local function fall_hurt_check(self, pos)
@@ -243,9 +247,9 @@ minetest.register_entity(":__builtin:falling_node", {
 
 			if (def.paramtype2 == "wallmounted" or def.paramtype2 == "colorwallmounted")
 			and node.param2 % 8 == 7 then
-				self.object:set_yaw(-math.pi * 0.25)
+				self.object:set_yaw(-math_pi * 0.25)
 			else
-				self.object:set_yaw(math.pi * 0.25)
+				self.object:set_yaw(math_pi * 0.25)
 			end
 
 		elseif ((np2 ~= 0 or def.drawtype == "nodebox" or def.drawtype == "mesh")
@@ -297,65 +301,65 @@ minetest.register_entity(":__builtin:falling_node", {
 				if def.drawtype == "nodebox" or def.drawtype == "mesh" then
 
 					if rot == 0 then
-						pitch, yaw = math.pi/2, 0
+						pitch, yaw = math_pi/2, 0
 					elseif rot == 1 then
-						pitch, yaw = -math.pi/2, math.pi
+						pitch, yaw = -math_pi/2, math_pi
 					elseif rot == 2 then
-						pitch, yaw = 0, math.pi/2
+						pitch, yaw = 0, math_pi/2
 					elseif rot == 3 then
-						pitch, yaw = 0, -math.pi/2
+						pitch, yaw = 0, -math_pi/2
 					elseif rot == 4 then
-						pitch, yaw = 0, math.pi
+						pitch, yaw = 0, math_pi
 					elseif rot == 6 then
-						pitch, yaw = math.pi/2, 0
+						pitch, yaw = math_pi/2, 0
 					elseif rot == 7 then
-						pitch, yaw = -math.pi/2, math.pi
+						pitch, yaw = -math_pi/2, math_pi
 					end
 				else
 					if rot == 1 then
-						pitch, yaw = math.pi, math.pi
+						pitch, yaw = math_pi, math_pi
 					elseif rot == 2 then
-						pitch, yaw = math.pi/2, math.pi/2
+						pitch, yaw = math_pi/2, math_pi/2
 					elseif rot == 3 then
-						pitch, yaw = math.pi/2, -math.pi/2
+						pitch, yaw = math_pi/2, -math_pi/2
 					elseif rot == 4 then
-						pitch, yaw = math.pi/2, math.pi
+						pitch, yaw = math_pi/2, math_pi
 					elseif rot == 5 then
-						pitch, yaw = math.pi/2, 0
+						pitch, yaw = math_pi/2, 0
 					elseif rot == 6 then
-						pitch, yaw = math.pi, -math.pi/2
+						pitch, yaw = math_pi, -math_pi/2
 					elseif rot == 7 then
-						pitch, yaw = 0, -math.pi/2
+						pitch, yaw = 0, -math_pi/2
 					end
 				end
 
 				if def.drawtype == "signlike" then
 
-					pitch = pitch - math.pi/2
+					pitch = pitch - math_pi/2
 
 					if rot == 0 then
-						yaw = yaw + math.pi/2
+						yaw = yaw + math_pi/2
 					elseif rot == 1 then
-						yaw = yaw - math.pi/2
+						yaw = yaw - math_pi/2
 					elseif rot == 6 then
-						yaw = yaw - math.pi/2
-						pitch = pitch + math.pi
+						yaw = yaw - math_pi/2
+						pitch = pitch + math_pi
 					elseif rot == 7 then
-						yaw = yaw + math.pi/2
-						pitch = pitch + math.pi
+						yaw = yaw + math_pi/2
+						pitch = pitch + math_pi
 					end
 
 				elseif def.drawtype == "mesh"
 				or def.drawtype == "normal" or def.drawtype == "nodebox" then
 
 					if rot == 0 and rot == 1 then
-						roll = roll + math.pi
+						roll = roll + math_pi
 					elseif rot == 6 or rot == 7 then
 						if def.drawtype ~= "normal" then
-							roll = roll - math.pi/2
+							roll = roll - math_pi/2
 						end
 					else
-						yaw = yaw + math.pi
+						yaw = yaw + math_pi
 					end
 				end
 
@@ -364,14 +368,14 @@ minetest.register_entity(":__builtin:falling_node", {
 			elseif (def.drawtype == "mesh" and def.paramtype2 == "degrotate") then
 
 				local p2 = (np2 - (def.place_param2 or 0)) % 240
-				local yaw = (p2 / 240) * (math.pi * 2)
+				local yaw = (p2 / 240) * (math_pi * 2)
 
 				self.object:set_yaw(yaw)
 
 			elseif (def.drawtype == "mesh" and def.paramtype2 == "colordegrotate") then
 
 				local p2 = (np2 % 32 - (def.place_param2 or 0) % 32) % 24
-				local yaw = (p2 / 24) * (math.pi * 2)
+				local yaw = (p2 / 24) * (math_pi * 2)
 
 				self.object:set_yaw(yaw)
 			end
