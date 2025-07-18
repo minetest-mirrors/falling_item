@@ -616,8 +616,12 @@ function core.check_for_falling(p)
 
 	while true do
 		-- Push current pos onto the stack.
-		n = n + 1 ; if n > 1000 then return end -- FIX: safety count to stop crash!
+		n = n + 1
 		s[n] = {p = p, v = v}
+
+		-- FIX: limit falling nodes stop crash!
+		if n > 1500 then return end
+
 		-- Select next node from neighbor list.
 		p = vector.add(p, check_for_falling_neighbors[v])
 		-- Now we check out the node. If it is in need of an update,
