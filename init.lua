@@ -14,12 +14,13 @@ local function add_fall_damage(node, damage)
 	end
 end
 
--- localize math func
+-- localize functions
 
 local math_pi = math.pi
+local get_node = core.get_node
 
 -- override falling nodes to add damage
-core.after(1.0, function()
+core.after(0, function()
 
 	add_fall_damage("default:sand", 2)
 	add_fall_damage("default:desert_sand", 2)
@@ -468,17 +469,11 @@ core.register_entity(":__builtin:falling_node", {
 		end
 
 		-- Avoid bugs caused by an unloaded node below
-		local below_node = core.get_node_or_nil(below_pos)
+		local below_node = get_node(below_pos)
 
 		-- Delete on contact with ignore at world edges or return if unloaded
-		if not below_node then
-			return
-
-		elseif below_node.name == "ignore" then
-
-			self.object:remove()
-
-			return
+		if below_node.name == "ignore" then
+			self.object:remove() ; return
 		end
 
 		local below_nodef = core.registered_nodes[below_node.name]
@@ -517,7 +512,7 @@ core.register_entity(":__builtin:falling_node", {
 			if not npos then return end
 
 			-- Get node we've landed inside
-			local cnode = core.get_node(npos)
+			local cnode = get_node(npos)
 			local cdef = core.registered_nodes[cnode.name]
 
 			-- If air_equivalent or buildable_to or an attached_node then place
