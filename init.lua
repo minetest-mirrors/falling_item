@@ -68,31 +68,30 @@ local facedir_to_euler = {
 
 local function fall_hurt_check(self, pos)
 
-	if self.hurt_toggle then
+	if not self.hurt_toggle then
+		self.hurt_toggle = true ; return
+	end
 
-		-- Get damage level from falling_node_damage group
-		local damage = core.registered_nodes[self.node.name] and
-				core.registered_nodes[self.node.name].groups.falling_node_damage
+	-- Get damage level from falling_node_damage group
+	local damage = core.registered_nodes[self.node.name] and
+			core.registered_nodes[self.node.name].groups.falling_node_damage
 
-		if damage then
+	if damage then
 
-			local all_objects = core.get_objects_inside_radius(pos, 0.8)
+		local all_objects = core.get_objects_inside_radius(pos, 0.8)
 
-			for _,obj in ipairs(all_objects) do
+		for _,obj in ipairs(all_objects) do
 
-				local name = obj:get_luaentity() and obj:get_luaentity().name
+			local name = obj:get_luaentity() and obj:get_luaentity().name
 
-				if (name ~= "__builtin:item" and name ~= "__builtin:falling_node")
-				or obj:is_player() then
+			if (name ~= "__builtin:item" and name ~= "__builtin:falling_node")
+			or obj:is_player() then
 
-					obj:punch(self.object, 4.0, {damage_groups = {fleshy = damage}}, nil)
+				obj:punch(self.object, 4.0, {damage_groups = {fleshy = damage}}, nil)
 
-					self.hurt_toggle = false
-				end
+				self.hurt_toggle = false
 			end
 		end
-	else
-		self.hurt_toggle = true
 	end
 end
 
@@ -301,36 +300,22 @@ core.register_entity(":__builtin:falling_node", {
 
 				if def.drawtype == "nodebox" or def.drawtype == "mesh" then
 
-					if rot == 0 then
-						pitch, yaw = math_pi/2, 0
-					elseif rot == 1 then
-						pitch, yaw = -math_pi/2, math_pi
-					elseif rot == 2 then
-						pitch, yaw = 0, math_pi/2
-					elseif rot == 3 then
-						pitch, yaw = 0, -math_pi/2
-					elseif rot == 4 then
-						pitch, yaw = 0, math_pi
-					elseif rot == 6 then
-						pitch, yaw = math_pi/2, 0
-					elseif rot == 7 then
-						pitch, yaw = -math_pi/2, math_pi
+					if rot == 0 then pitch, yaw = math_pi/2, 0
+					elseif rot == 1 then pitch, yaw = -math_pi/2, math_pi
+					elseif rot == 2 then pitch, yaw = 0, math_pi/2
+					elseif rot == 3 then pitch, yaw = 0, -math_pi/2
+					elseif rot == 4 then pitch, yaw = 0, math_pi
+					elseif rot == 6 then pitch, yaw = math_pi/2, 0
+					elseif rot == 7 then pitch, yaw = -math_pi/2, math_pi
 					end
 				else
-					if rot == 1 then
-						pitch, yaw = math_pi, math_pi
-					elseif rot == 2 then
-						pitch, yaw = math_pi/2, math_pi/2
-					elseif rot == 3 then
-						pitch, yaw = math_pi/2, -math_pi/2
-					elseif rot == 4 then
-						pitch, yaw = math_pi/2, math_pi
-					elseif rot == 5 then
-						pitch, yaw = math_pi/2, 0
-					elseif rot == 6 then
-						pitch, yaw = math_pi, -math_pi/2
-					elseif rot == 7 then
-						pitch, yaw = 0, -math_pi/2
+					if rot == 1 then pitch, yaw = math_pi, math_pi
+					elseif rot == 2 then pitch, yaw = math_pi/2, math_pi/2
+					elseif rot == 3 then pitch, yaw = math_pi/2, -math_pi/2
+					elseif rot == 4 then pitch, yaw = math_pi/2, math_pi
+					elseif rot == 5 then pitch, yaw = math_pi/2, 0
+					elseif rot == 6 then pitch, yaw = math_pi, -math_pi/2
+					elseif rot == 7 then pitch, yaw = 0, -math_pi/2
 					end
 				end
 
@@ -338,16 +323,10 @@ core.register_entity(":__builtin:falling_node", {
 
 					pitch = pitch - math_pi/2
 
-					if rot == 0 then
-						yaw = yaw + math_pi/2
-					elseif rot == 1 then
-						yaw = yaw - math_pi/2
-					elseif rot == 6 then
-						yaw = yaw - math_pi/2
-						pitch = pitch + math_pi
-					elseif rot == 7 then
-						yaw = yaw + math_pi/2
-						pitch = pitch + math_pi
+					if rot == 0 then yaw = yaw + math_pi/2
+					elseif rot == 1 then yaw = yaw - math_pi/2
+					elseif rot == 6 then yaw = yaw - math_pi/2 ; pitch = pitch + math_pi
+					elseif rot == 7 then yaw = yaw + math_pi/2 ; pitch = pitch + math_pi
 					end
 
 				elseif def.drawtype == "mesh"
@@ -384,11 +363,7 @@ core.register_entity(":__builtin:falling_node", {
 	end,
 
 	get_staticdata = function(self)
-
-		return core.serialize({
-			node = self.node,
-			meta = self.meta
-		})
+		return core.serialize({node = self.node, meta = self.meta})
 	end,
 
 	on_activate = function(self, staticdata)
@@ -428,11 +403,7 @@ core.register_entity(":__builtin:falling_node", {
 
 		-- used to simulate a little lag
 		self.timer = (self.timer or 0) + dtime
-
-		if self.timer < delay then
-			return
-		end
-
+		if self.timer < delay then return end
 		self.timer = 0
 
 		-- Set gravity and horizontal slowing
@@ -583,20 +554,14 @@ core.register_entity(":__builtin:falling_node", {
 -- Down first as likely case, but always before self. The same with sides.
 -- Up must come last, so that things above self will also fall all at once.
 local check_for_falling_neighbors = {
-	vector.new(-1, -1,  0),
-	vector.new( 1, -1,  0),
-	vector.new( 0, -1, -1),
-	vector.new( 0, -1,  1),
-	vector.new( 0, -1,  0),
-	vector.new(-1,  0,  0),
-	vector.new( 1,  0,  0),
-	vector.new( 0,  0,  1),
-	vector.new( 0,  0, -1),
-	vector.new( 0,  0,  0),
-	vector.new( 0,  1,  0)
+	vector.new(-1, -1,  0), vector.new( 1, -1,  0), vector.new( 0, -1, -1),
+	vector.new( 0, -1,  1), vector.new( 0, -1,  0), vector.new(-1,  0,  0),
+	vector.new( 1,  0,  0), vector.new( 0,  0,  1), vector.new( 0,  0, -1),
+	vector.new( 0,  0,  0), vector.new( 0,  1,  0)
 }
 
 function core.check_for_falling(p)
+
 	-- Round p to prevent falling entities to get stuck.
 	p = vector.round(p)
 
