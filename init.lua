@@ -17,7 +17,17 @@ end
 -- localize functions
 
 local math_pi = math.pi
+local get_id = core.get_node_raw
+local get_id_name = core.get_name_from_content_id
 local get_node = core.get_node
+
+if get_id then get_node = function(pos)
+
+		local id, p1, p2, pos_ok = get_id(pos.x, pos.y, pos.z)
+
+		return {name = get_id_name(id), param1 = p1, param2 = p2, loaded = pos_ok}
+	end
+end
 
 -- override falling nodes to add damage
 core.after(0, function()
