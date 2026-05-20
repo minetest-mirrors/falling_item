@@ -16,7 +16,7 @@ end
 
 -- localize functions
 
-local math_pi = math.pi
+local math_pi, random = math.pi, math.random
 local get_id = core.get_node_raw
 local get_id_name = core.get_name_from_content_id
 local get_node = core.get_node
@@ -104,7 +104,6 @@ local function fall_hurt_check(self, pos)
 		end
 	end
 end
-
 
 -- override falling node entity with new version
 core.register_entity(":__builtin:falling_node", {
@@ -383,14 +382,9 @@ core.register_entity(":__builtin:falling_node", {
 
 		local ds = core.deserialize(staticdata)
 
-		if ds and ds.node then
-			self:set_node(ds.node, ds.meta)
-
-		elseif ds then
-			self:set_node(ds)
-
-		elseif staticdata ~= "" then
-			self:set_node({name = staticdata})
+		if ds and ds.node then self:set_node(ds.node, ds.meta)
+		elseif ds then self:set_node(ds)
+		elseif staticdata ~= "" then self:set_node({name = staticdata})
 		end
 	end,
 
@@ -488,9 +482,7 @@ core.register_entity(":__builtin:falling_node", {
 		-- Has the fallen node stopped moving ?
 		if vector.equals(vel, {x = 0, y = 0, z = 0}) then
 
-			local npos = self.object:get_pos()
-
-			if not npos then return end
+			local npos = self.object:get_pos() ; if not npos then return end
 
 			-- Get node we've landed inside
 			local cnode = get_node(npos)
@@ -525,19 +517,17 @@ core.register_entity(":__builtin:falling_node", {
 				npos = vector.round(npos)
 
 				-- Place falling entity as node and write any metadata
-				core.add_node(npos, self.node)
+				core.set_node(npos, self.node)
 
 				if self.meta then
-
-					local meta = core.get_meta(npos)
-
-					meta:from_table(self.meta)
+					core.get_meta(npos):from_table(self.meta)
 				end
 
 				-- Play placed sound
 				local def = core.registered_nodes[self.node.name]
 
 				if def.sounds and def.sounds.place and def.sounds.place.name then
+
 					core.sound_play(def.sounds.place, {pos = npos}, true)
 				end
 
@@ -548,7 +538,12 @@ core.register_entity(":__builtin:falling_node", {
 				local drops = core.get_node_drops(self.node, "")
 
 				for _, dropped_item in pairs(drops) do
-					core.add_item(npos, dropped_item)
+
+					local obj = core.add_item(npos, dropped_item)
+
+					if obj then -- give dropped items a chance to merge with others
+						obj:set_velocity({x = random() - 0.5, y = 4, z = random() - 0.5})
+					end
 				end
 			end
 
