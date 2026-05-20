@@ -528,16 +528,15 @@ core.register_entity(":__builtin:falling_node", {
 
 				if def.sounds and def.sounds.place and def.sounds.place.name then
 
-					core.sound_play(def.sounds.place, {pos = npos}, true)
+					core.sound_play(def.sounds.place,
+							{pos = npos, max_hear_distance = 10}, true)
 				end
 
 				-- Just incase we landed on other falling nodes
 				core.check_for_falling(npos)
 			else
 				-- Add drops from falling node
-				local drops = core.get_node_drops(self.node, "")
-
-				for _, dropped_item in pairs(drops) do
+				for _, dropped_item in pairs(core.get_node_drops(self.node)) do
 
 					local obj = core.add_item(npos, dropped_item)
 
