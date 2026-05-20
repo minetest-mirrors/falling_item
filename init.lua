@@ -393,9 +393,7 @@ core.register_entity(":__builtin:falling_node", {
 
 		if puncher and puncher:is_player() then
 
-			local drops = core.get_node_drops(self.node, "")
-
-			for _, dropped_item in pairs(drops) do
+			for _, dropped_item in pairs(core.get_node_drops(self.node)) do
 				core.add_item(self.object:get_pos(), dropped_item)
 			end
 
@@ -451,15 +449,15 @@ core.register_entity(":__builtin:falling_node", {
 			self.object:remove() ; return
 		end
 
-		local below_nodef = core.registered_nodes[below_node.name]
+		local below_def = core.registered_nodes[below_node.name]
 
 		-- Is it a level node we can add to?
-		if below_nodef and below_nodef.leveled and below_node.name == self.node.name then
+		if below_def and below_def.leveled and below_node.name == self.node.name then
 
 			local addlevel = self.node.level
 
 			if not addlevel or addlevel <= 0 then
-				addlevel = below_nodef.leveled
+				addlevel = below_def.leveled
 			end
 
 			if core.add_node_level(below_pos, addlevel) == 0 then
@@ -470,40 +468,33 @@ core.register_entity(":__builtin:falling_node", {
 			end
 		end
 
-		-- Stop node if it falls on walkable surface, or floats on water
-		if (below_nodef and below_nodef.walkable == true)
-		or (below_nodef
-		and core.get_item_group(self.node.name, "float") ~= 0
-		and below_nodef.liquidtype ~= "none") then
+		-- Stop node if it floats on water
+		if below_def and below_def.liquidtype ~= "none" and self.floats then
 
 			self.object:set_velocity({x = 0, y = 0, z = 0})
+			self.water_landing = true
 		end
 
 		-- Has the fallen node stopped moving ?
-		if vector.equals(vel, {x = 0, y = 0, z = 0}) then
+		if vector.equals(vel, {x = 0, y = 0, z = 0}) or self.water_landing then
 
 			local npos = self.object:get_pos() ; if not npos then return end
 
 			-- Get node we've landed inside
 			local cnode = get_node(npos)
 			local cdef = core.registered_nodes[cnode.name]
+			local attached = core.get_item_group(cnode.name, "attached_node") ~= 0
 
-			-- If air_equivalent or buildable_to or an attached_node then place
-			--  node, otherwise drop falling node as an item instead.
-			if (cdef and cdef.air_equivalent == true)
-			or (cdef and cdef.buildable_to == true)
-			or (cdef and cdef.liquidtype ~= "none")
+			-- Can we replace node, if so place, otherwise drop as item
+			if (cdef and cdef.buildable_to) or (cdef and cdef.liquidtype ~= "none")
 			-- only drop attached nodes if area not protected (torch, rails etc.)
-			or (core.get_item_group(cnode.name, "attached_node") ~= 0
-			and not core.is_protected(npos, "")) then
+			or (attached and not core.is_protected(npos, "")) then
 
 				-- Are we an attached node ? (grass, flowers, torch)
-				if core.get_item_group(cnode.name, "attached_node") ~= 0 then
+				if attached then
 
 					-- Add drops from attached node
-					local drops = core.get_node_drops(cnode.name, "")
-
-					for _, dropped_item in pairs(drops) do
+					for _, dropped_item in pairs(core.get_node_drops(cnode.name)) do
 						core.add_item(npos, dropped_item)
 					end
 
@@ -523,14 +514,23 @@ core.register_entity(":__builtin:falling_node", {
 					core.get_meta(npos):from_table(self.meta)
 				end
 
-				-- Play placed sound
+				-- Play placed sound (limited hearing distance to stop openal errors)
 				local def = core.registered_nodes[self.node.name]
+				local snd_def = {
+					name = "default_place_node",
+					pos = npos, max_hear_distance = 10
+				}
 
-				if def.sounds and def.sounds.place and def.sounds.place.name then
-
-					core.sound_play(def.sounds.place,
-							{pos = npos, max_hear_distance = 10}, true)
+				if def and def.sounds and def.sounds.place and def.sounds.place.name then
+					snd_def.name = def.sounds.place.name
 				end
+
+				-- if node floats on water then use water sound
+				if self.water_landing then
+					snd_def.name = "default_water_footstep" ; snd_def.gain = 0.4
+				end
+
+				core.sound_play(snd_def, true)
 
 				-- Just incase we landed on other falling nodes
 				core.check_for_falling(npos)
