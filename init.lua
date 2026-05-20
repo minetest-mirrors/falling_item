@@ -558,7 +558,7 @@ core.register_entity(":__builtin:falling_node", {
 	end
 })
 
-
+--[[
 -- This table is specifically ordered.
 -- We don't walk diagonals, only our direct neighbors, and self.
 -- Down first as likely case, but always before self. The same with sides.
@@ -611,9 +611,7 @@ function core.check_for_falling(p)
 				n = n - 1
 				-- If there's nothing left on the stack, and no
 				-- more sides to walk to, we're done and can exit
-				if n == 0 and v == 11 then
-					return
-				end
+				if n == 0 and v == 11 then return end
 			until v < 11
 
 			-- The next round walk the next neighbor in list.
@@ -623,6 +621,56 @@ function core.check_for_falling(p)
 			-- start walking it from the walk order start (1),
 			-- and not the order we just pushed up the stack.
 			v = 1
+		end
+	end
+end
+]]
+
+local falling_neighbors = {
+	vector.new(-1, -1,  0), vector.new( 1, -1,  0), vector.new( 0, -1, -1),
+	vector.new( 0, -1,  1), vector.new( 0, -1,  0), vector.new(-1,  0,  0),
+	vector.new( 1,  0,  0), vector.new( 0,  0,  1), vector.new( 0,  0, -1),
+	vector.new( 0,  0,  0), vector.new( 0,  1,  0)
+}
+local fn_count = #falling_neighbors
+local stack_depth = 1000 -- limits falling nodes to avoid crashing
+
+function core.check_for_falling(p)
+
+	p = vector.round(p)
+
+	local stack = {}
+	local size = 0
+
+	local function push_node(pos)
+
+		size = size + 1
+
+		if size > stack_depth then return end
+
+		stack[size] = {p = pos, v = 1}
+
+		return true
+	end
+
+	push_node(p) -- first prod
+
+	while size > 0 do
+
+		local current = stack[size]
+
+		if current.v > fn_count then
+			stack[size] = nil
+			size = size - 1
+		else
+			local next_pos = vector.add(current.p, falling_neighbors[current.v])
+
+			current.v = current.v + 1
+
+			if core.check_single_for_falling(next_pos) then
+
+				if not push_node(next_pos) then return end
+			end
 		end
 	end
 end
