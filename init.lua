@@ -36,7 +36,7 @@ core.after(0, function()
 	add_fall_damage("default:desert_sand", 2)
 	add_fall_damage("default:silver_sand", 2)
 	add_fall_damage("default:gravel", 3)
-	add_fall_damage("caverealms:coal_dust", 3)
+	add_fall_damage("caverealms:coal_dust", 2)
 	add_fall_damage("tnt:tnt_burning", 4)
 end)
 
@@ -78,29 +78,23 @@ local facedir_to_euler = {
 
 local function fall_hurt_check(self, pos)
 
-	if not self.hurt_toggle then
-		self.hurt_toggle = true ; return
-	end
+	self.hurt_toggle = not self.hurt_toggle -- flip toggle so it doesnt always hurt
 
 	-- Get damage level from falling_node_damage group
 	local damage = core.registered_nodes[self.node.name] and
 			core.registered_nodes[self.node.name].groups.falling_node_damage
 
-	if damage then
+	if not damage then return end
 
-		local all_objects = core.get_objects_inside_radius(pos, 0.8)
+	local all_objects = core.get_objects_inside_radius(pos, 0.8)
 
-		for _,obj in ipairs(all_objects) do
+	for _,obj in ipairs(all_objects) do
 
-			local name = obj:get_luaentity() and obj:get_luaentity().name
+		local name = obj:get_luaentity() and obj:get_luaentity().name
+				or obj:is_player() and "player"
 
-			if (name ~= "__builtin:item" and name ~= "__builtin:falling_node")
-			or obj:is_player() then
-
-				obj:punch(self.object, 4.0, {damage_groups = {fleshy = damage}}, nil)
-
-				self.hurt_toggle = false
-			end
+		if (name ~= "__builtin:item" and name ~= "__builtin:falling_node") then
+			obj:punch(self.object, 4.0, {damage_groups = {fleshy = damage}}, nil)
 		end
 	end
 end
@@ -179,19 +173,12 @@ core.register_entity(":__builtin:falling_node", {
 				end
 			end
 
-			local vsize
-
-			if def.visual_scale then
-
-				local s = def.visual_scale
-
-				vsize = {x = s, y = s, z = s}
-			end
+			local vs = def.visual_scale
 
 			self.object:set_properties({
 				is_visible = true,
 				visual = "upright_sprite",
-				visual_size = vsize,
+				visual_size = vs and {x = vs, y = vs, z = vs},
 				textures = textures,
 				glow = def.light_source
 			})
@@ -245,9 +232,7 @@ core.register_entity(":__builtin:falling_node", {
 					box[5] = -0.5 + self.node.level / 64
 				end
 
-				self.object:set_properties({
-					collisionbox = box
-				})
+				self.object:set_properties({collisionbox = box})
 			end
 		end
 
@@ -528,7 +513,7 @@ core.register_entity(":__builtin:falling_node", {
 				end
 
 				core.sound_play(snd,
-						{pos = npos, gain = gain, max_hear_distance = 10}, true)
+						{pos = npos, gain = gain, max_hear_distance = 15}, true)
 
 				-- Just incase we landed on other falling nodes
 				core.check_for_falling(npos)
