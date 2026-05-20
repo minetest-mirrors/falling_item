@@ -516,21 +516,19 @@ core.register_entity(":__builtin:falling_node", {
 
 				-- Play placed sound (limited hearing distance to stop openal errors)
 				local def = core.registered_nodes[self.node.name]
-				local snd_def = {
-					name = "default_place_node",
-					pos = npos, max_hear_distance = 10
-				}
+				local snd, gain = "default_place_node", 1.0
 
 				if def and def.sounds and def.sounds.place and def.sounds.place.name then
-					snd_def.name = def.sounds.place.name
+					snd = def.sounds.place.name
 				end
 
 				-- if node floats on water then use water sound
 				if self.water_landing then
-					snd_def.name = "default_water_footstep" ; snd_def.gain = 0.4
+					snd = "default_water_footstep" ; gain = 0.4
 				end
 
-				core.sound_play(snd_def, true)
+				core.sound_play(snd,
+						{pos = npos, gain = gain, max_hear_distance = 10}, true)
 
 				-- Just incase we landed on other falling nodes
 				core.check_for_falling(npos)
