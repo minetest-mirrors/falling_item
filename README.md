@@ -10,7 +10,6 @@ Features:
    'self' contains falling object data
    'self.node' is the node currently falling
    'self.meta' is the metadata contained within the falling node
-   'pos' holds position of falling item
    'dtime' used for timers
 
    return false to skip further checks by falling_item
