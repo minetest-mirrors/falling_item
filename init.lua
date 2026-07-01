@@ -222,8 +222,7 @@ core.register_entity(":__builtin:falling_node", {
 	try_place = function(self, bcp, bcn)
 		local bcd = core.registered_nodes[bcn.name]
 		-- Add levels if dropped on same leveled node
-		if bcd and bcd.paramtype2 == "leveled" and
-				bcn.name == self.node.name then
+		if bcd and bcd.paramtype2 == "leveled" and bcn.name == self.node.name then
 			local addlevel = self.node.level
 			if (addlevel or 0) <= 0 then
 				addlevel = bcd.leveled
@@ -280,9 +279,9 @@ core.register_entity(":__builtin:falling_node", {
 				core.get_meta(np):from_table(self.meta)
 			end
 			local snd, gain = "default_place_node", 1.0
-			if bcd.groups.water then
+			if self.floats and bcd.groups.water then
 				snd = "default_water_footstep" ; gain = 0.4
-			elseif bcd.groups.lava then
+			elseif self.floats and bcd.groups.lava then
 				snd = "default_cool_lava" ; gain = 0.1
 			elseif def.sounds and def.sounds.place then
 				snd = def.sounds.place
