@@ -20,11 +20,7 @@ local function add_fall_damage(node, damage)
 
 	if core.registered_nodes[node] then
 
-		local group = core.registered_nodes[node].groups
-
-		group.falling_node_damage = damage
-
-		core.override_item(node, {groups = group})
+		core.registered_nodes[node].groups.falling_node_damage = damage
 	else
 		print (node .. " not found to add falling_node_damage to")
 	end
@@ -51,10 +47,12 @@ local function fall_hurt_check(self, obj)
 	local damage = core.registered_nodes[self.node.name] and
 			core.registered_nodes[self.node.name].groups.falling_node_damage
 
-	if not node_fall_hurt or not damage then return end
+	if not node_fall_hurt or not damage or not obj then return end
 
-	local name = obj and obj:get_luaentity() and obj:get_luaentity().name
-			or obj:is_player() and "player"
+	local name
+
+	if obj:is_player() then name = "player"
+	elseif obj:get_luaentity() then name = obj:get_luaentity().name end
 
 	if name and name ~= "__builtin:item" and name ~= "__builtin:falling_node" then
 		obj:punch(self.object, 4.0, {damage_groups = {fleshy = damage}}, nil)
@@ -419,6 +417,7 @@ local falling_neighbors = {
 function core.check_for_falling(p)
 
 	local stack = {vector.round(p)}
+	local visited = {}
 	local count = 0
 	local max_depth = 650
 
@@ -431,9 +430,12 @@ function core.check_for_falling(p)
 		for _, offset in ipairs(falling_neighbors) do
 
 			local next_pos = vector.add(current_pos, offset)
+			local next_pos_str = vector.to_string(next_pos)
 			
-			-- If node be falling, add to stack for a neighbor check
-			if core.check_single_for_falling(next_pos) then
+			-- If node be falling, add to stack for a neighbor check unless done already
+			if not visited[next_pos_str] and core.check_single_for_falling(next_pos) then
+
+				visited[next_pos_str] = true
 
 				table.insert(stack, next_pos)
 				
@@ -442,6 +444,7 @@ function core.check_for_falling(p)
 			end
 		end
 	end
+	visited = nil
 end
 
 
